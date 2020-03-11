@@ -1,1 +1,3 @@
+webhookSource: gitlab
 webhookSecretToken: THIS_IS_A_SECRET
+sshKey: None

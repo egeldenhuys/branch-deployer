@@ -1,9 +1,11 @@
 package io.evert.branchdeployer.webhook;
 
+import java.io.IOException;
 import java.util.Map;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -11,49 +13,36 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.servlet.ModelAndView;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Controller
+@RestController
 @PropertySource("file:config.yml")
-public class WebHookController {
+public class WebhookController {
 
-    private static final Logger log = LoggerFactory.getLogger(WebHookController.class);
+    private static final Logger log = LoggerFactory.getLogger(WebhookController.class);
 
     @Value("${webhookSecretToken}")
     private String webhookSecretToken;
 
-    @PostMapping(value = "/hook")
+    @PostMapping(value = "/hook", consumes = MediaType.APPLICATION_JSON_VALUE)
     public String Test(@RequestHeader Map<String, String> headers, @RequestBody String payload)
-            throws JsonProcessingException {
-
-        log.info(payload);
-        Map<String, Object> payloadMap = new ObjectMapper().readValue(payload, Map.class);
-        Map<String, Object> repository = (Map) payloadMap.get("repository");
-        String name = (String) repository.get("name");
-        log.warn(name);
-
-        // headers.forEach((key, value) -> {
-        //     log.info(String.format("Header '%s' = %s", key, value));
-        // });
-
-        // payload.forEach((key, value) -> {
-        //     log.info(String.format("BODY %s = %s", key, value));
-        // });
-
-        // log.warn(payload.get("repository").toString());
-
-        // // log.info(payload.toString());
-
-        // // log.warn(payload.get("description").toString());
-        // // log.warn(payload.get("repository."))
+            throws JsonProcessingException, IOException {
+        // Install vscode extension `gabrielbb.vscode-lombok` for hints
+        ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        GitLabWebhookModel webhookModel = mapper.readValue(payload, GitLabWebhookModel.class);
+        webhookModel.init();
+        log.info(webhookModel.getStatus());
         return "index";
     }
 }
