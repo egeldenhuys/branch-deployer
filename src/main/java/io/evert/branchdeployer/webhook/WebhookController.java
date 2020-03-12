@@ -26,25 +26,63 @@ public class WebhookController {
     @Autowired
     private Config config;
 
+    public Boolean isAllowedProject;
+
     @PostMapping(value = "/hook", consumes = MediaType.APPLICATION_JSON_VALUE)
     public String Test(@RequestHeader final Map<String, String> headers, @RequestBody final String payload)
             throws IOException {
+        config.init();
 
+        log.info(String.format("Receieved webhook request. Headers: %s", headers.toString()));
+    
         final ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
                 false);
-
+        
         WebhookModel webhookModel;
-        if (headers.containsKey("x-gitlab-event")) {
+
+        // Configure webhook based on source
+        if (headers.containsKey("x-gitlab-event") && headers.get("x-gitlab-event").equals("Pipeline Hook")) {
             webhookModel = mapper.readValue(payload, GitLabWebhookModel.class);
-            webhookModel.init();
+            if (!webhookModel.init(headers)) {
+                log.error("Could not create webhook model");
+                return "ERROR_COULD_NOT_PARSE_REQUEST";
+            };
         } else {
-            throw new UnsupportedOperationException(
-                    String.format("Webhook source is not supported: %s", headers.toString()));
+            log.error(String.format("Webhook source is not supported: %s", headers.toString()));
+            return "WEBHOOK_SOURCE_NOT_SUPPORTED";
         }
 
-        List<Project> projects = config.getProjects();
-        log.debug(projects.toString());
+        // Authenticate webhook
+        String webhookSecret = webhookModel.webhookSecret;
+        log.debug(webhookSecret);
+        Project project = null;
+        if (config.getSecretToProjectMap().containsKey(webhookSecret)) {
+            project = config.getSecretToProjectMap().get(webhookSecret);
+            log.info(String.format("Received webhook for project [%s]", project.getName()));
+        } else {
+            log.warn(String.format("Webhook Secret [%s] was not found in config", webhookSecret));
+            return "INVALID_SECRET";
+        }
 
         return "OK";
+
+
+        // Admin deploys Branch-Deployer
+
+        // Configures domain suffix
+        //  <branch>.<project>.<suffix>
+        //  encryption.password-manager.evert.io
+
+        // Admin creates webhook from GitLab to branch-deployer
+        //  Configures secret key for auth
+        //
+
+        /**
+         * Somebody pushes to repo
+         * We check auth token
+         * Gitlab sends info when build passes/fails
+         * If build passes:
+         *      
+         */
     }
 }

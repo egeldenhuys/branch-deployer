@@ -7,6 +7,7 @@ import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.core.env.CommandLinePropertySource;
 import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.Environment;
@@ -19,10 +20,8 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @SpringBootApplication
+@ConfigurationPropertiesScan
 public class BranchDeployerApplication implements ApplicationRunner{
-
-	@Autowired
-	private ConfigurableEnvironment env;
 
 	public static void main(String[] args) {
 		SpringApplication.run(BranchDeployerApplication.class, args);

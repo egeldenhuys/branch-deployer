@@ -1,5 +1,7 @@
 package io.evert.branchdeployer.webhook;
 
+import java.util.Map;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -12,6 +14,8 @@ public abstract class WebhookModel {
     @Getter @Setter protected String branchName;
     @Getter @Setter protected String projectName;
     @Getter @Setter protected String commitId;
-    
-    public abstract void init();
+    @Getter @Setter protected String webhookSecret;
+
+    public abstract Boolean init(Map<String, String> headers);
+
 }
