@@ -26,16 +26,7 @@ public class Config {
     @Getter private Map<String, Project> secretToProjectMap = new HashMap<>();
 
     public Config(List<Project> projects) {
-        log.warn("Creating config instance using params");
-        log.warn(projects.toString());
         this.projects = projects;
-        this.init();
-    }
-
-    public void init() {
-        log.warn("Initialising config");
-        log.warn(this.projects.toString());
-
         for (Project project : this.projects) {
             this.secretToProjectMap.put(project.getWebhookSecret(), project);
             log.info(String.format("%s -> %s", project.getWebhookSecret(), project.getName()));

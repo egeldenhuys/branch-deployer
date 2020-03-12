@@ -1,9 +1,10 @@
 logging:
   level:
     io.evert: DEBUG
+    web: DEBUG
 
 branch-deployer:
   projects:
-    - name: password-manager
+    - name: FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFff
       webhookSecret: 25db4f98393878f1f8a7dad1c956e73b
 

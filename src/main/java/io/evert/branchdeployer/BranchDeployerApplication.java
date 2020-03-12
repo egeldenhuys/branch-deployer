@@ -21,15 +21,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @SpringBootApplication
 @ConfigurationPropertiesScan
-public class BranchDeployerApplication implements ApplicationRunner{
+public class BranchDeployerApplication{
 
 	public static void main(String[] args) {
 		SpringApplication.run(BranchDeployerApplication.class, args);
 	}
 
-	@Override
-	public void run(ApplicationArguments args) {
-		log.info(Arrays.toString(args.getSourceArgs()));
-	}
+	// @Override
+	// public void run(ApplicationArguments args) {
+	// 	log.info(Arrays.toString(args.getSourceArgs()));
+	// }
 
 }

@@ -35,7 +35,7 @@ public class WebhookController {
     WebhookService webhookService;
 
     @PostMapping(value = "/hook", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public String HandleWebhook(@RequestHeader final Map<String, String> headers, @RequestBody final String payload,
+    public String handleWebhook(@RequestHeader final Map<String, String> headers, @RequestBody final String payload,
     HttpServletResponse response) {
         
         WebhookModel webhook = null;
