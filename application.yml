@@ -17,9 +17,13 @@ branch_deployer:
 
   root_clone_directory: /tmp/branch_deployer
   digital_ocean_auth_token: DO_TOKEN
+  # <branch-name>.<project-name>.example.com
+  domain: example.com
+  cname_value: server.example.com
   projects:
     - name: PROJECT_NAME
       webhookSecret: SECRET
       username: username
       password: password
-
+      insert_local_files:
+        - password-demo-config.json
