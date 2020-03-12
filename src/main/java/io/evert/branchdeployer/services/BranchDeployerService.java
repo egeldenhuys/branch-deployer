@@ -148,6 +148,9 @@ public class BranchDeployerService {
             return;
         }
 
+        File f = new File(canonicalPath);
+        f.mkdirs();
+
         String canonicalBranchLockFile = validatePath(config.getRootCloneDirectory(), webhook.getPathWithNamepace() + "_" + webhook.getBranchName() + ".lock");
         if (canonicalBranchLockFile == null) {
             log.error(String.format("Could not validate lock file path: %s", canonicalBranchLockFile));
