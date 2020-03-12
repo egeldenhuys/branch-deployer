@@ -27,6 +27,9 @@ public class BranchDeployerService {
     @Autowired
     BranchDeployerConfig config;
 
+    @Autowired
+    DockerService dockerService;
+
     Boolean deleteDirectory(File directoryToBeDeleted) {
         // https://www.baeldung.com/java-delete-directory
         File[] allContents = directoryToBeDeleted.listFiles();
@@ -143,37 +146,55 @@ public class BranchDeployerService {
             log.error(String.format("Could not validate lock file path: %s", canonicalBranchLockFile));
             return;
         }
-        
-        log.info(String.format("Locking %s", canonicalBranchLockFile));
-        FileOutputStream fos = getStream(canonicalBranchLockFile);
-        if (fos == null) {
-            log.error("Could not get File Output Stream");
-            return;
-        }
-        FileLock lock = getLock(fos);
-
-        if (lock == null) {
-            log.error("Could not get lock");
-            return;
-        }
-        
-        // Warning: Potential race condition. May deploy an out of date commit.
-        try {
-            log.warn(String.format("Deleting directory [%s]", canonicalPath));
-            deleteDirectory(new File(canonicalPath));
-        
-            Boolean success = gitService.cloneRepo(
-                webhook.getUri(), 
-                webhook.getBranchName(),
-                canonicalPath,
-                project.getUsername(), 
-                project.getPassword());
-
-            if (!success) {
-                log.error("Failed to clone repo");
+        final File lockFile = new File(canonicalBranchLockFile);
+    
+        // intern is not the best, but good enough for now.
+        synchronized(lockFile.toPath().toString().intern()) {
+            log.info(String.format("Locking %s", canonicalBranchLockFile));
+            FileOutputStream fos = getStream(canonicalBranchLockFile);
+            if (fos == null) {
+                log.error("Could not get File Output Stream");
+                return;
             }
-        } finally {
-            releaseLock(fos, lock);
+            FileLock lock = getLock(fos);
+
+            if (lock == null) {
+                log.error("Could not get lock");
+                try {
+                    fos.close();
+                } catch (Exception e) {
+                    log.error("Failed to close file stream", e);
+                }
+                return;
+            }
+            
+            // Warning: Potential race condition. May deploy an out of date commit.
+            try {
+                File repoDir = new File(canonicalPath);
+                if (repoDir.exists()) {
+                    dockerService.stackDown(repoDir);
+                }
+
+                log.warn(String.format("Deleting directory [%s]", canonicalPath));
+                deleteDirectory(new File(canonicalPath));
+            
+                Boolean success = gitService.cloneRepo(
+                    webhook.getUri(), 
+                    webhook.getBranchName(),
+                    canonicalPath,
+                    project.getUsername(), 
+                    project.getPassword());
+
+                if (!success) {
+                    log.error("Failed to clone repo");
+                    return;
+                }
+
+                dockerService.stackUp(repoDir);
+            } finally {
+                log.info("Freeing lock...");
+                releaseLock(fos, lock);
+            }
         }
     }
 }
