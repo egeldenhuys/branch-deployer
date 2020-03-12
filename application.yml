@@ -1,10 +1,24 @@
 logging:
   level:
     io.evert: DEBUG
-    web: DEBUG
+    web: INFO
+server:
+  port: 8080
+  tomcat:
+    accesslog:
+      enabled: true
+      directory: /dev
+      prefix: stdout
+      buffered: false
+      suffix:
+      file-date-format:
 
-branch-deployer:
+branch_deployer:
+
+  root_clone_directory: /tmp/branch_deployer
   projects:
-    - name: FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFff
-      webhookSecret: 25db4f98393878f1f8a7dad1c956e73b
+    - name: PROJECT_NAME
+      webhookSecret: SECRET
+      username: username
+      password: password
 

@@ -20,19 +20,22 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import lombok.extern.slf4j.Slf4j;
-
-import io.evert.branchdeployer.config.Config;
+import io.evert.branchdeployer.config.BranchDeployerConfig;
 import io.evert.branchdeployer.config.model.Project;
+import io.evert.branchdeployer.services.BranchDeployerService;
 
 @Slf4j
 @RestController
 public class WebhookController {
 
     @Autowired
-    Config config;
+    BranchDeployerConfig config;
 
     @Autowired
     WebhookService webhookService;
+
+    @Autowired
+    BranchDeployerService branchDeployer;
 
     @PostMapping(value = "/hook", consumes = MediaType.APPLICATION_JSON_VALUE)
     public String handleWebhook(@RequestHeader final Map<String, String> headers, @RequestBody final String payload,
@@ -42,17 +45,32 @@ public class WebhookController {
         try {
             webhook = webhookService.getWebhookFromRequest(headers, payload);
         } catch (IOException e) {
-            log.error(e.getMessage());
+            log.error(e.getMessage(), e);
             response.setStatus(HttpStatus.BAD_REQUEST.value());
             return "ERROR";
         }
 
         if (webhook == null) {
-            response.setStatus(HttpStatus.FORBIDDEN.value());
+            response.setStatus(HttpStatus.BAD_REQUEST.value());
             return "ERROR";
         }
 
-        log.info(String.format("Received webhook for project: %s", config.getSecretToProjectMap().get(webhook.getWebhookSecret())));
+        if (!webhook.getValid()) {
+            response.setStatus(HttpStatus.BAD_REQUEST.value());
+            log.error(webhook.getReason());
+            return "ERROR";
+        }
+
+        Project project = config.getSecretToProjectMap().get(webhook.getWebhookSecret());
+        log.info(String.format("Received webhook for project: %s", project));
+
+        if (!webhook.getSuccess()) {
+            log.info(String.format("Skipping deployment due to CI status %s", webhook.getStatus()));
+            return "SKIP";
+        }
+
+        // Don't keep the webhook poster waiting
+        branchDeployer.asyncDeployBranch(webhook, project);
 
         return "OK";
     }

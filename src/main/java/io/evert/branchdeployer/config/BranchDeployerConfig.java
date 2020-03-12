@@ -20,13 +20,20 @@ import io.evert.branchdeployer.config.model.Project;
 
 @ConstructorBinding
 @ConfigurationProperties("branch-deployer")
-public class Config {
+public class BranchDeployerConfig {
 
+    @Getter private String rootCloneDirectory;
     @Getter private List<Project> projects = new ArrayList<>();
     @Getter private Map<String, Project> secretToProjectMap = new HashMap<>();
 
-    public Config(List<Project> projects) {
+    public BranchDeployerConfig(String rootCloneDirectory, List<Project> projects) {
         this.projects = projects;
+        if (!rootCloneDirectory.endsWith("/")) {
+            rootCloneDirectory += "/";
+        }
+        this.rootCloneDirectory = rootCloneDirectory;
+        log.info(rootCloneDirectory);
+
         for (Project project : this.projects) {
             this.secretToProjectMap.put(project.getWebhookSecret(), project);
             log.info(String.format("%s -> %s", project.getWebhookSecret(), project.getName()));

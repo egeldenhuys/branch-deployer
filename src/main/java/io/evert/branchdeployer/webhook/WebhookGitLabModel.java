@@ -23,10 +23,14 @@ public class WebhookGitLabModel extends WebhookModel {
     @Override
     public Boolean init(Map<String, String> headers) {
         if (headers.containsKey("x-gitlab-event") && headers.get("x-gitlab-event").equals("Pipeline Hook")) {
-            this.status = (String)this.objectAttributes.get("status");
+            this.success = this.objectAttributes.get("status").equals("success") ? true : false;
             this.branchName = (String)this.objectAttributes.get("ref");
             this.projectName = (String)this.project.get("name");
             this.commitId = (String)this.commit.get("id");
+            this.uri = (String)this.project.get("git_http_url");
+            this.pathWithNamepace = (String)this.project.get("path_with_namespace");
+            this.status = (String)this.objectAttributes.get("status");
+            this.valid = true;
         } else {
             this.valid = false;
             this.reason = String.format("Invalid headers: %s", headers);
@@ -39,8 +43,9 @@ public class WebhookGitLabModel extends WebhookModel {
             this.webhookSecret = "";
             this.valid = false;
             this.reason = String.format("No webhook secret found in headers: %s", headers);
+            return this.valid;
         }
 
-        return true;
+        return this.valid;
     }
 }

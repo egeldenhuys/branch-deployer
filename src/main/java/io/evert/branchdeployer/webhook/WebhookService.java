@@ -11,7 +11,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import io.evert.branchdeployer.config.Config;
+import io.evert.branchdeployer.config.BranchDeployerConfig;
 import io.evert.branchdeployer.config.model.Project;
 import lombok.extern.slf4j.Slf4j;
 
@@ -20,7 +20,7 @@ import lombok.extern.slf4j.Slf4j;
 public class WebhookService {
 
     @Autowired
-    private Config config;
+    private BranchDeployerConfig config;
 
     // Get webhook
     public WebhookModel getWebhookFromRequest(Map<String, String> headers, String payload)

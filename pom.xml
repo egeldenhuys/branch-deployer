@@ -75,7 +75,14 @@
 			<artifactId>org.eclipse.jgit</artifactId>
 			<version>3.5.0.201409260305-r</version>
 		</dependency>
+		<dependency>
+			<groupId>com.github.docker-java</groupId>
+			<artifactId>docker-java</artifactId>
+			<!-- use latest version https://github.com/docker-java/docker-java/releases -->
+			<version>3.2.0</version>
+		</dependency>
 	</dependencies>
+
 
 	<build>
 		<plugins>
