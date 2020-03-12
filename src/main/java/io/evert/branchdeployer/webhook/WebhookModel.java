@@ -15,6 +15,9 @@ public abstract class WebhookModel {
     @Getter @Setter protected String projectName;
     @Getter @Setter protected String commitId;
     @Getter @Setter protected String webhookSecret;
+    
+    @Getter @Setter protected Boolean valid;
+    @Getter @Setter protected String reason;
 
     public abstract Boolean init(Map<String, String> headers);
 

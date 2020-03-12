@@ -4,10 +4,15 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
+import javax.servlet.http.HttpServletResponse;
+
+import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -24,65 +29,31 @@ import io.evert.branchdeployer.config.model.Project;
 public class WebhookController {
 
     @Autowired
-    private Config config;
+    Config config;
 
-    public Boolean isAllowedProject;
+    @Autowired
+    WebhookService webhookService;
 
     @PostMapping(value = "/hook", consumes = MediaType.APPLICATION_JSON_VALUE)
-    public String Test(@RequestHeader final Map<String, String> headers, @RequestBody final String payload)
-            throws IOException {
-        config.init();
-
-        log.info(String.format("Receieved webhook request. Headers: %s", headers.toString()));
-    
-        final ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
-                false);
+    public String HandleWebhook(@RequestHeader final Map<String, String> headers, @RequestBody final String payload,
+    HttpServletResponse response) {
         
-        WebhookModel webhookModel;
-
-        // Configure webhook based on source
-        if (headers.containsKey("x-gitlab-event") && headers.get("x-gitlab-event").equals("Pipeline Hook")) {
-            webhookModel = mapper.readValue(payload, GitLabWebhookModel.class);
-            if (!webhookModel.init(headers)) {
-                log.error("Could not create webhook model");
-                return "ERROR_COULD_NOT_PARSE_REQUEST";
-            };
-        } else {
-            log.error(String.format("Webhook source is not supported: %s", headers.toString()));
-            return "WEBHOOK_SOURCE_NOT_SUPPORTED";
+        WebhookModel webhook = null;
+        try {
+            webhook = webhookService.getWebhookFromRequest(headers, payload);
+        } catch (IOException e) {
+            log.error(e.getMessage());
+            response.setStatus(HttpStatus.BAD_REQUEST.value());
+            return "ERROR";
         }
 
-        // Authenticate webhook
-        String webhookSecret = webhookModel.webhookSecret;
-        log.debug(webhookSecret);
-        Project project = null;
-        if (config.getSecretToProjectMap().containsKey(webhookSecret)) {
-            project = config.getSecretToProjectMap().get(webhookSecret);
-            log.info(String.format("Received webhook for project [%s]", project.getName()));
-        } else {
-            log.warn(String.format("Webhook Secret [%s] was not found in config", webhookSecret));
-            return "INVALID_SECRET";
+        if (webhook == null) {
+            response.setStatus(HttpStatus.FORBIDDEN.value());
+            return "ERROR";
         }
+
+        log.info(String.format("Received webhook for project: %s", config.getSecretToProjectMap().get(webhook.getWebhookSecret())));
 
         return "OK";
-
-
-        // Admin deploys Branch-Deployer
-
-        // Configures domain suffix
-        //  <branch>.<project>.<suffix>
-        //  encryption.password-manager.evert.io
-
-        // Admin creates webhook from GitLab to branch-deployer
-        //  Configures secret key for auth
-        //
-
-        /**
-         * Somebody pushes to repo
-         * We check auth token
-         * Gitlab sends info when build passes/fails
-         * If build passes:
-         *      
-         */
     }
 }

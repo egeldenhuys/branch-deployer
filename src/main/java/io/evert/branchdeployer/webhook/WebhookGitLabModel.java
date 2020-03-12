@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @NoArgsConstructor
-public class GitLabWebhookModel extends WebhookModel {
+public class WebhookGitLabModel extends WebhookModel {
 
     @JsonProperty("object_attributes")
     private Map<String, Object> objectAttributes;
@@ -28,14 +28,17 @@ public class GitLabWebhookModel extends WebhookModel {
             this.projectName = (String)this.project.get("name");
             this.commitId = (String)this.commit.get("id");
         } else {
-            log.error(String.format("Invalid headers: %s", headers));
-            return false;
+            this.valid = false;
+            this.reason = String.format("Invalid headers: %s", headers);
+            return this.valid;
         }
 
         if (headers.containsKey("x-gitlab-token")) {
             this.webhookSecret = headers.get("x-gitlab-token");
         } else {
             this.webhookSecret = "";
+            this.valid = false;
+            this.reason = String.format("No webhook secret found in headers: %s", headers);
         }
 
         return true;
