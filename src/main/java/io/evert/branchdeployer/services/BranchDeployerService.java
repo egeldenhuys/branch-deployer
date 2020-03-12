@@ -155,6 +155,8 @@ public class BranchDeployerService {
         }
         final File lockFile = new File(canonicalBranchLockFile);
     
+        String projectName = config.getSecretToProjectMap().get(webhook.getWebhookSecret()).getName();
+
         // intern is not the best, but good enough for now.
         synchronized(lockFile.toPath().toString().intern()) {
             log.info(String.format("Locking %s", canonicalBranchLockFile));
@@ -179,7 +181,8 @@ public class BranchDeployerService {
             try {
                 Map<String, String> env = new HashMap<String, String>();
                 // Warning: branch name is not validated
-                env.put("TAG_NAME",webhook.getCommitHash());
+                env.put("TAG_NAME", webhook.getCommitHash());
+                env.put("SUBDOMAIN", String.format("%s.%s", webhook.getBranchName(), projectName));
                 File repoDir = new File(canonicalPath);
                 if (repoDir.exists()) {
                     dockerService.stackDown(repoDir, env);
