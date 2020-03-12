@@ -1,0 +1,10 @@
+logging:
+  level:
+    io.evert: DEBUG
+
+branch-deployer:
+  projects:
+    - name: password-manager
+      webhookSecret: THIS_IS_A_SECRET
+    - name: GitGud
+      webhookSecret: SECRET_KEY_LOL

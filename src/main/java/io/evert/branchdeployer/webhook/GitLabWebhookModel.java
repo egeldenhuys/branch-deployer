@@ -3,14 +3,11 @@ package io.evert.branchdeployer.webhook;
 import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonValue;
 
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Getter @Setter @NoArgsConstructor
-public class GitLabWebhookModel {
+@NoArgsConstructor
+public class GitLabWebhookModel extends WebhookModel {
 
     @JsonProperty("object_attributes")
     private Map<String, Object> objectAttributes;
@@ -21,18 +18,7 @@ public class GitLabWebhookModel {
     @JsonProperty("commit")
     private Map<String, Object> commit;
 
-    private String status;
-    private String branchName;
-    private String projectName;
-    private String commitId;
-
-    // public GitLabWebhookModel(Map<String, Object> objectAttributes, Map<String, String> project, Map<String, Object> commit) {
-    //     System.out.println(objectAttributes.toString());
-    //     this.objectAttributes = objectAttributes;
-    //     this.project = project;
-    //     this.commit = commit;
-    // }
-
+    @Override
     public void init() {
         this.status = (String)this.objectAttributes.get("status");
         this.branchName = (String)this.objectAttributes.get("ref");
