@@ -1,5 +1,8 @@
 package io.evert.branchdeployer.config.model;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import lombok.Getter;
 import lombok.Setter;
 import lombok.ToString;
@@ -7,7 +10,8 @@ import lombok.ToString;
 @ToString
 public class Project {
     @Getter @Setter private String name;
-    @Getter @Setter private String webhookSecret;
-    @Getter @Setter private String username;
-    @Getter @Setter private String password;
+    @ToString.Exclude  @Getter @Setter private String webhookSecret;
+    @ToString.Exclude  @Getter @Setter private String username;
+    @ToString.Exclude  @Getter @Setter private String password;
+    @Getter @Setter private List<String> insertLocalFiles = new ArrayList<>();
 }

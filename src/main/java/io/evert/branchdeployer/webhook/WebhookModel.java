@@ -14,12 +14,13 @@ public abstract class WebhookModel {
     @Getter @Setter protected String branchName;
     @Getter @Setter protected String projectName;
     @Getter @Setter protected String commitId;
-    @Getter @Setter protected String webhookSecret;
+    @ToString.Exclude  @Getter @Setter protected String webhookSecret;
     @Getter @Setter protected String uri;
     @Getter @Setter protected String pathWithNamepace;
     @Getter @Setter protected Boolean valid;
     @Getter @Setter protected String reason;
     @Getter @Setter protected String status;
+    @Getter @Setter protected String commitHash;
 
     public abstract Boolean init(Map<String, String> headers);
 

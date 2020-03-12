@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Arrays;
+import java.util.Map;
 
 import org.springframework.stereotype.Service;
 
@@ -58,12 +59,15 @@ public class DockerService {
         return true;
     }
 
-    public Boolean runCommand(File workingDir, String[] commands) {
+    public Boolean runCommand(File workingDir, String[] commands, Map<String, String> env) {
         // https://mkyong.com/java/how-to-execute-shell-command-from-java/
         ProcessBuilder processBuilder = new ProcessBuilder();
         processBuilder.command(commands);
         processBuilder.directory(workingDir);
         processBuilder.inheritIO();
+        Map<String, String> pbEnv = processBuilder.environment();
+        env.forEach((k, v) -> pbEnv.put(k, v));
+
         try {
 
             Process process = processBuilder.start();
@@ -80,9 +84,10 @@ public class DockerService {
 
             int exitVal = process.waitFor();
             if (exitVal == 0) {
-                // log.info("Success!");
+                return true;
             } else {
                 log.info(String.format("Exit code: %s", exitVal));
+                return false;
             }
 
         } catch (IOException e) {
@@ -92,20 +97,21 @@ public class DockerService {
             log.error("InterruptedException", e);
             return false;
         }
-        return true;
     }
 
-    public Boolean stackDown(final File dir) {
+    public Boolean stackKill(final File dir, Map<String, String> env) {
         log.info(String.format("docker-compose kill in %s", dir.getPath()));
-        runCommand(dir, new String[]{"docker-compose", "kill"});
-        log.info("DONE");
-        return true;
+        return runCommand(dir, new String[]{"docker-compose", "kill"}, env);
     }
 
-    public Boolean stackUp(final File dir) {
+    public Boolean stackDown(final File dir, Map<String, String> env) {
+        stackKill(dir, env);
+        log.info(String.format("docker-compose down in %s", dir.getPath()));
+        return runCommand(dir, new String[]{"docker-compose", "down"}, env);
+    }
+
+    public Boolean stackUp(final File dir, Map<String, String> env) {
         log.info(String.format("docker-compose up -d in %s", dir.getPath()));
-        runCommand(dir, new String[]{"docker-compose", "up", "-d"});
-        log.info("DONE");
-        return true;
+        return runCommand(dir, new String[]{"docker-compose", "up", "-d"}, env);
     }
 }

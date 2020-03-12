@@ -30,6 +30,9 @@ build/
 ### VS Code ###
 .vscode/
 
-### Project specific
-application-production.yml
 password-demo-config.json
+
+README.md
+.drone.yml
+.gitignore
+.git

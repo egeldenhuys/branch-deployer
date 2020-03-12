@@ -31,7 +31,7 @@ public class GitService {
             return false;
         }
         
-        log.info("Done clonine");
+        log.info("Done Cloning");
         return true;
     }
 }

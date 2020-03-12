@@ -30,6 +30,7 @@ public class WebhookGitLabModel extends WebhookModel {
             this.uri = (String)this.project.get("git_http_url");
             this.pathWithNamepace = (String)this.project.get("path_with_namespace");
             this.status = (String)this.objectAttributes.get("status");
+            this.commitHash = (String)this.objectAttributes.get("sha");
             this.valid = true;
         } else {
             this.valid = false;

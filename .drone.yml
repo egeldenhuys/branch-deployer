@@ -1,0 +1,40 @@
+kind: pipeline
+type: docker
+name: default
+
+steps:
+  - name: docker
+    image: plugins/docker
+    volumes:
+      - name: docker-socket
+        path: /var/run/docker.sock
+    settings:
+      repo: egeldenhuys/branch-deployer
+      purge: false
+      tags:
+        - branch-${DRONE_COMMIT_BRANCH}
+        - ${DRONE_COMMIT}
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+  
+  - name: docker-tag
+    image: plugins/docker
+    volumes:
+      - name: docker-socket
+        path: /var/run/docker.sock
+    settings:
+      repo: egeldenhuys/branch-deployer
+      purge: false
+      auto_tag: true
+      username:
+        from_secret: docker_username
+      password:
+        from_secret: docker_password
+
+
+volumes:
+  - name: docker-socket
+    host:
+      path: /var/run/docker.sock

@@ -44,7 +44,6 @@ public class WebhookService {
 
         // Authenticate webhook
         String webhookSecret = webhookModel.webhookSecret;
-        log.debug(webhookSecret);
         Project project = null;
         if (config.getSecretToProjectMap().containsKey(webhookSecret)) {
             project = config.getSecretToProjectMap().get(webhookSecret);

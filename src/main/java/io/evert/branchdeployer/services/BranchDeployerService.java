@@ -7,7 +7,11 @@ import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+import org.apache.commons.io.FileUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -29,6 +33,9 @@ public class BranchDeployerService {
 
     @Autowired
     DockerService dockerService;
+
+    @Autowired
+    DigitalOceanService digitalOceanService;
 
     Boolean deleteDirectory(File directoryToBeDeleted) {
         // https://www.baeldung.com/java-delete-directory
@@ -170,9 +177,12 @@ public class BranchDeployerService {
             
             // Warning: Potential race condition. May deploy an out of date commit.
             try {
+                Map<String, String> env = new HashMap<String, String>();
+                // Warning: branch name is not validated
+                env.put("TAG_NAME",webhook.getCommitHash());
                 File repoDir = new File(canonicalPath);
                 if (repoDir.exists()) {
-                    dockerService.stackDown(repoDir);
+                    dockerService.stackDown(repoDir, env);
                 }
 
                 log.warn(String.format("Deleting directory [%s]", canonicalPath));
@@ -190,7 +200,38 @@ public class BranchDeployerService {
                     return;
                 }
 
-                dockerService.stackUp(repoDir);
+                List<String> localFilesToCopy = config.getSecretToProjectMap().get(webhook.getWebhookSecret()).getInsertLocalFiles();
+                for (String localFile : localFilesToCopy) {
+                    File src = new File(localFile);
+                    File dst = new File(canonicalPath + "/" + localFile);
+                    log.info(String.format("Copying %s -> %s", src, dst));
+
+                    try {
+                        FileUtils.copyFile(src, dst);
+                    } catch (IOException e) {
+                        log.error("Failed to copy file", e);
+                        return;
+                    }
+                }
+
+                Boolean dockerSucc = dockerService.stackUp(repoDir, env);
+
+                if (!dockerSucc) {
+                    log.error("Failed to start docker containers");
+                    return;
+                }
+
+                log.info("Creating domain...");
+                Boolean domainSucc = digitalOceanService.createSubDomain(
+                    webhook.getBranchName(),
+                    config.getSecretToProjectMap().get(webhook.getWebhookSecret()).getName(),
+                    config.getDomain());
+
+                if (!domainSucc) {
+                    log.error("Failed to create domain");
+                    return;
+                }
+            
             } finally {
                 log.info("Freeing lock...");
                 releaseLock(fos, lock);

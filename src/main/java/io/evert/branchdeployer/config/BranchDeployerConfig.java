@@ -25,9 +25,16 @@ public class BranchDeployerConfig {
     @Getter private String rootCloneDirectory;
     @Getter private List<Project> projects = new ArrayList<>();
     @Getter private Map<String, Project> secretToProjectMap = new HashMap<>();
+    @Getter private String digitalOceanAuthToken;
+    @Getter private String cnameValue;
+    @Getter private String domain;
 
-    public BranchDeployerConfig(String rootCloneDirectory, List<Project> projects) {
+    public BranchDeployerConfig(String digitalOceanAuthToken, String cnameValue, String rootCloneDirectory, List<Project> projects, String domain) {
+        log.warn(digitalOceanAuthToken);
         this.projects = projects;
+        this.digitalOceanAuthToken = digitalOceanAuthToken;
+        this.domain = domain;
+        this.cnameValue = cnameValue;
         if (!rootCloneDirectory.endsWith("/")) {
             rootCloneDirectory += "/";
         }
