@@ -6,7 +6,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
-import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -143,7 +142,7 @@ public class BranchDeployerService {
     public void asyncDeployBranch(WebhookModel webhook, Project project) {
 
         String canonicalPath = validatePath(config.getRootCloneDirectory(), webhook.getPathWithNamepace() + "_" + webhook.getBranchName());
-
+        Project webhookProject = config.getSecretToProjectMap().get(webhook.getWebhookSecret());
         if (canonicalPath == null) {
             return;
         }
@@ -158,7 +157,7 @@ public class BranchDeployerService {
         }
         final File lockFile = new File(canonicalBranchLockFile);
     
-        String projectName = config.getSecretToProjectMap().get(webhook.getWebhookSecret()).getName();
+        String projectName = webhookProject.getName();
 
         // intern is not the best, but good enough for now.
         synchronized(lockFile.toPath().toString().intern()) {
@@ -180,7 +179,6 @@ public class BranchDeployerService {
                 return;
             }
             
-            // Warning: Potential race condition. May deploy an out of date commit.
             try {
                 Map<String, String> env = new HashMap<String, String>();
                 // Warning: branch name is not validated
@@ -206,7 +204,7 @@ public class BranchDeployerService {
                     return;
                 }
 
-                List<String> localFilesToCopy = config.getSecretToProjectMap().get(webhook.getWebhookSecret()).getInsertLocalFiles();
+                List<String> localFilesToCopy = webhookProject.getInsertLocalFiles();
                 for (String localFile : localFilesToCopy) {
                     File src = new File(localFile);
                     File dst = new File(canonicalPath + "/" + localFile);
@@ -230,7 +228,7 @@ public class BranchDeployerService {
                 log.info("Creating domain...");
                 Boolean domainSucc = digitalOceanService.createSubDomain(
                     webhook.getBranchName(),
-                    config.getSecretToProjectMap().get(webhook.getWebhookSecret()).getName(),
+                    webhookProject.getName(),
                     config.getDomain());
 
                 if (!domainSucc) {

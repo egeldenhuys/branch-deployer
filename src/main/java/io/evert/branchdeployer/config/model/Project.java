@@ -9,6 +9,7 @@ import lombok.ToString;
 
 @ToString
 public class Project {
+    // Setters might not be necessary
     @Getter @Setter private String name;
     @ToString.Exclude  @Getter @Setter private String webhookSecret;
     @ToString.Exclude  @Getter @Setter private String username;

@@ -3,16 +3,13 @@ package io.evert.branchdeployer.webhook;
 import java.io.IOException;
 import java.util.Map;
 
-import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import io.evert.branchdeployer.config.BranchDeployerConfig;
-import io.evert.branchdeployer.config.model.Project;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -22,7 +19,6 @@ public class WebhookService {
     @Autowired
     private BranchDeployerConfig config;
 
-    // Get webhook
     public WebhookModel getWebhookFromRequest(Map<String, String> headers, String payload)
             throws IOException {
         final ObjectMapper mapper = new ObjectMapper().configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
@@ -44,10 +40,8 @@ public class WebhookService {
 
         // Authenticate webhook
         String webhookSecret = webhookModel.webhookSecret;
-        Project project = null;
-        if (config.getSecretToProjectMap().containsKey(webhookSecret)) {
-            project = config.getSecretToProjectMap().get(webhookSecret);
-        } else {
+
+        if (!config.getSecretToProjectMap().containsKey(webhookSecret)) {
             log.warn(String.format("Webhook Secret [%s] was not found in config", webhookSecret));
             return null;
         }

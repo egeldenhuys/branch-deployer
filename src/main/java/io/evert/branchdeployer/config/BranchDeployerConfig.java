@@ -7,12 +7,8 @@ import java.util.Map;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.ConstructorBinding;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import io.evert.branchdeployer.config.model.Project;
 
@@ -30,7 +26,6 @@ public class BranchDeployerConfig {
     @Getter private String domain;
 
     public BranchDeployerConfig(String digitalOceanAuthToken, String cnameValue, String rootCloneDirectory, List<Project> projects, String domain) {
-        log.warn(digitalOceanAuthToken);
         this.projects = projects;
         this.digitalOceanAuthToken = digitalOceanAuthToken;
         this.domain = domain;
@@ -43,7 +38,7 @@ public class BranchDeployerConfig {
 
         for (Project project : this.projects) {
             this.secretToProjectMap.put(project.getWebhookSecret(), project);
-            log.info(String.format("%s -> %s", project.getWebhookSecret(), project.getName()));
+            log.info(String.format("Loading project %s", project.getName()));
         }
     }
 }

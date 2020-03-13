@@ -3,7 +3,7 @@ logging:
     io.evert: DEBUG
     web: INFO
 server:
-  port: 8080
+  port: 8081
   tomcat:
     accesslog:
       enabled: true
@@ -14,7 +14,6 @@ server:
       file-date-format:
 
 branch_deployer:
-
   root_clone_directory: /tmp/branch_deployer
   digital_ocean_auth_token: DO_TOKEN
   # <branch-name>.<project-name>.example.com

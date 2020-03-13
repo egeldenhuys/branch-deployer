@@ -1,15 +1,9 @@
 package io.evert.branchdeployer.webhook;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
-
-import com.fasterxml.jackson.core.JsonParseException;
-import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -69,7 +63,6 @@ public class WebhookController {
             return "SKIP";
         }
 
-        // Don't keep the webhook poster waiting
         branchDeployer.asyncDeployBranch(webhook, project);
 
         return "OK";

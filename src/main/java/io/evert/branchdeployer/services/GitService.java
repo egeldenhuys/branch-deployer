@@ -27,7 +27,6 @@ public class GitService {
             cloneCommand.call();
         } catch (Exception e) {
             log.error(e.getMessage(), e);
-            // e.printStackTrace();
             return false;
         }
         

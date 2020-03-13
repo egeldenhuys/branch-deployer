@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import io.evert.branchdeployer.config.BranchDeployerConfig;
-import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -28,6 +27,7 @@ public class DigitalOceanService {
 
         DomainRecord input = new DomainRecord(String.format("%s.%s", branchName, projectName), config.getCnameValue(),
                 "CNAME");
+        input.setTtl(60);
 
         DomainRecord domainRecord = null;
         try {
